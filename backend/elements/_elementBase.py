@@ -7,7 +7,7 @@ class ElementBase(object):
     def __init__(self, attr=None):
         self._attr = dict()
         if '_id' not in self.__class__._attrdef.keys():
-            self.__class__._attrdef = {**{'_id': self.__class__.addAttr(default=None, unique=True)}, **self.__class__._attrdef}  # add _id on front
+            self.__class__._attrdef = {**{'_id': self.__class__.addAttr(type=str, default=None, unique=True)}, **self.__class__._attrdef}  # add _id on front
         self.__init_attr()
         if attr is not None:
             for k, v in attr.items():
@@ -30,8 +30,8 @@ class ElementBase(object):
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self['_id']}>"
 
-    def addAttr(default=None, unique=False, notnone=False):
-        return {'default': default, 'unique': unique, 'notnone': notnone}
+    def addAttr(type=str, default=None, unique=False, notnone=False):
+        return {'type': type, 'default': default, 'unique': unique, 'notnone': notnone}
 
     @classmethod
     def get(cls, id):
@@ -62,6 +62,8 @@ class ElementBase(object):
                 if found is not None and not found['_id'] == self['_id']:
                     errors[attr] = f'marked as unique, but element with value "{self[attr]}" allready present'
                     continue
+            if not isinstance(self[attr], opt['type']) and self[attr] is not None:
+                errors[attr] = f"needs to be of type {opt['type']}{' or None' if not opt['notnone'] else ''}"
         if len(errors) == 0:
             errors = self.validate()
         return errors
