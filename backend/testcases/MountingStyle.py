@@ -3,9 +3,6 @@ from helpers.docdb import docDB
 from elements import MountingStyle, Footprint
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
-setup_module = setUpModule
-teardown_module = tearDownModule
-
 
 class TestMountingStyle(unittest.TestCase):
     def test_name_uniqeness(self):
@@ -117,104 +114,15 @@ class TestMountingStyle(unittest.TestCase):
         self.assertIsNone(fp['mounting_style_id'])
 
 
+setup_module = setUpModule
+teardown_module = tearDownModule
+
+
 class TestMountingStyleApi(ApiTestBase):
-    def setUp(self):
-        docDB.clear()
-        ms = MountingStyle({'name': 'SMD'})
-        self.id1 = ms.save().get('created')
-        ms = MountingStyle({'name': 'THD'})
-        self.id2 = ms.save().get('created')
-
-    def test_options_all(self):
-        result = self.webapp_request(path='/mountingstyle/', method='OPTIONS')
-        self.assertIn('OPTIONS', result.headers['Allow'])
-        self.assertIn('GET', result.headers['Allow'])
-        self.assertIn('POST', result.headers['Allow'])
-        self.assertNotIn('PATCH', result.headers['Allow'])
-        self.assertNotIn('DELETE', result.headers['Allow'])
-        self.assertNotIn('PUT', result.headers['Allow'])
-
-    def test_options_single(self):
-        result = self.webapp_request(path='/mountingstyle/something/', method='OPTIONS')
-        self.assertTrue(result.status.startswith('404'), msg=f'should start with 404 but is {result.status}')
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='OPTIONS')
-        self.assertIn('OPTIONS', result.headers['Allow'])
-        self.assertIn('GET', result.headers['Allow'])
-        self.assertNotIn('POST', result.headers['Allow'])
-        self.assertIn('PATCH', result.headers['Allow'])
-        self.assertIn('DELETE', result.headers['Allow'])
-        self.assertNotIn('PUT', result.headers['Allow'])
-
-    def test_get_all(self):
-        result = self.webapp_request(path='/mountingstyle/', method='GET')
-        self.assertEqual(len(result.json), 2)
-
-    def test_get_single(self):
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='GET')
-        self.assertEqual(result.json['name'], 'SMD')
-        result = self.webapp_request(path='/mountingstyle/something/', method='GET')
-        self.assertTrue(result.status.startswith('404'), msg=f'should start with 404 but is {result.status}')
-
-    def test_post_all(self):
-        self.assertEqual(len(MountingStyle.all()), 2)
-        result = self.webapp_request(path='/mountingstyle/', method='POST')
-        self.assertTrue(result.status.startswith('400'), msg=f'should start with 400 but is {result.status}')
-        self.assertEqual(len(MountingStyle.all()), 2)
-        result = self.webapp_request(path='/mountingstyle/', method='POST', data=['a', 'list'])
-        self.assertTrue(result.status.startswith('400'), msg=f'should start with 400 but is {result.status}')
-        self.assertEqual(len(MountingStyle.all()), 2)
-        result = self.webapp_request(path='/mountingstyle/', method='POST', name='something')
-        self.assertTrue(result.status.startswith('201'), msg=f'should start with 201 but is {result.status}')
-        self.assertEqual(len(MountingStyle.all()), 3)
-
-    def test_post_single(self):
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='POST')
-        self.assertTrue(result.status.startswith('405'), msg=f'should start with 405 but is {result.status}')
-
-    def test_delete_all(self):
-        result = self.webapp_request(path='/mountingstyle/', method='DELETE')
-        self.assertTrue(result.status.startswith('405'), msg=f'should start with 405 but is {result.status}')
-
-    def test_delete_single(self):
-        self.assertEqual(len(MountingStyle.all()), 2)
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='DELETE')
-        self.assertEqual(len(MountingStyle.all()), 1)
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='DELETE')
-        self.assertTrue(result.status.startswith('404'), msg=f'should start with 404 but is {result.status}')
-        self.assertEqual(len(MountingStyle.all()), 1)
-        result = self.webapp_request(path=f'/mountingstyle/{self.id2}/', method='DELETE')
-        self.assertEqual(len(MountingStyle.all()), 0)
-
-    def test_patch_all(self):
-        result = self.webapp_request(path='/mountingstyle/', method='PATCH')
-        self.assertTrue(result.status.startswith('405'), msg=f'should start with 405 but is {result.status}')
-
-    def test_patch_single(self):
-        ms = MountingStyle.get(self.id1)
-        self.assertEqual(ms['desc'], '')
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='PATCH', desc='hello world')
-        ms.reload()
-        self.assertEqual(ms['desc'], 'hello world')
-        result = self.webapp_request(path='/mountingstyle/something/', method='PATCH', desc='hello world')
-        self.assertTrue(result.status.startswith('404'), msg=f'should start with 404 but is {result.status}')
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='PATCH', data=['a', 'list'])
-        self.assertTrue(result.status.startswith('400'), msg=f'should start with 400 but is {result.status}')
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='PATCH', name=None)
-        self.assertTrue(result.status.startswith('400'), msg=f'should start with 400 but is {result.status}')
-        ms.reload()
-        self.assertIsNotNone(ms['name'])
-
-    def test_put_all(self):
-        result = self.webapp_request(path='/mountingstyle/', method='PUT')
-        self.assertTrue(result.status.startswith('405'), msg=f'should start with 405 but is {result.status}')
-        self.assertIn('OPTIONS', result.headers['Allow'])
-        self.assertIn('GET', result.headers['Allow'])
-        self.assertIn('POST', result.headers['Allow'])
-
-    def test_put_single(self):
-        result = self.webapp_request(path=f'/mountingstyle/{self.id1}/', method='PUT')
-        self.assertTrue(result.status.startswith('405'), msg=f'should start with 405 but is {result.status}')
-        self.assertIn('OPTIONS', result.headers['Allow'])
-        self.assertIn('GET', result.headers['Allow'])
-        self.assertIn('PATCH', result.headers['Allow'])
-        self.assertIn('DELETE', result.headers['Allow'])
+    _element = MountingStyle
+    _path = 'mountingstyle'
+    _setup_el1 = {'name': 'SMD'}
+    _setup_el2 = {'name': 'THD'}
+    _post_valid = {'name': 'something'}
+    _patch_valid = {'desc': 'hello world'}
+    _patch_invalid = {'name': None}

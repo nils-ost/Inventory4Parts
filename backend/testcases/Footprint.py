@@ -1,6 +1,7 @@
 import unittest
 from helpers.docdb import docDB
 from elements import Footprint, MountingStyle
+from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
 class TestFootprint(unittest.TestCase):
@@ -44,3 +45,22 @@ class TestFootprint(unittest.TestCase):
         fp['mounting_style_id'] = ms['_id']
         result = fp.save()
         self.assertNotIn('errors', result)
+
+
+setup_module = setUpModule
+teardown_module = tearDownModule
+
+
+class TestFootprintApi(ApiTestBase):
+    _element = Footprint
+    _path = 'footprint'
+    _setup_el1 = {'name': '0805'}
+    _setup_el2 = {'name': '0603'}
+    _post_valid = {'name': 'SOT-8'}
+    _patch_invalid = {'mounting_style_id': 'nonexistend'}
+
+    def setUp(self):
+        super().setUp()
+        ms = MountingStyle({'name': 'SMD'})
+        ms.save()
+        self._patch_valid = {'mounting_style_id': ms['_id']}

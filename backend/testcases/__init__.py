@@ -1,3 +1,3 @@
 from .MountingStyle import TestMountingStyle, TestMountingStyleApi
-from .Footprint import TestFootprint
-from .Category import TestCategory
+from .Footprint import TestFootprint, TestFootprintApi
+from .Category import TestCategory, TestCategoryApi

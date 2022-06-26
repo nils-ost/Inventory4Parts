@@ -1,6 +1,7 @@
 import unittest
 from helpers.docdb import docDB
 from elements import Category
+from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
 class TestCategory(unittest.TestCase):
@@ -64,3 +65,17 @@ class TestCategory(unittest.TestCase):
         child.reload()
         self.assertEqual(len(Category.all()), 1)
         self.assertIsNone(child['parent_category_id'])
+
+
+setup_module = setUpModule
+teardown_module = tearDownModule
+
+
+class TestCategoryApi(ApiTestBase):
+    _element = Category
+    _path = 'category'
+    _setup_el1 = {'name': 'Passive'}
+    _setup_el2 = {'name': 'Active'}
+    _post_valid = {'name': 'Wires'}
+    _patch_valid = {'desc': 'hello world'}
+    _patch_invalid = {'name': None}
