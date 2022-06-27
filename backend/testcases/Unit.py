@@ -93,6 +93,10 @@ class TestUnit(unittest.TestCase):
         # deleting last one does not produce an error
         el1.delete()
 
+    def test_deletion_with_associated_part(self):
+        # if Part referes to a Unit the Unit shouldn't be deletable
+        self.assertTrue(False)
+
 
 setup_module = setUpModule
 teardown_module = tearDownModule

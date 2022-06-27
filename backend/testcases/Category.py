@@ -66,6 +66,10 @@ class TestCategory(unittest.TestCase):
         self.assertEqual(len(Category.all()), 1)
         self.assertIsNone(child['parent_category_id'])
 
+    def test_deletion_with_associated_part(self):
+        # if Part referes to a Category the Category shouldn't be deletable
+        self.assertTrue(False)
+
 
 setup_module = setUpModule
 teardown_module = tearDownModule

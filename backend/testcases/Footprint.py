@@ -46,6 +46,10 @@ class TestFootprint(unittest.TestCase):
         result = fp.save()
         self.assertNotIn('errors', result)
 
+    def test_deletion_with_associated_part(self):
+        # if Part referes to a Footprint the footprint_id should be None'ed when Footprint is deleted
+        self.assertTrue(False)
+
 
 setup_module = setUpModule
 teardown_module = tearDownModule

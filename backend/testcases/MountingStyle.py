@@ -113,6 +113,10 @@ class TestMountingStyle(unittest.TestCase):
         fp.reload()
         self.assertIsNone(fp['mounting_style_id'])
 
+    def test_deletion_with_associated_part(self):
+        # if Part referes to a MountingStyle the mounting_style_id should be None'ed when MountingStyle is deleted
+        self.assertTrue(False)
+
 
 setup_module = setUpModule
 teardown_module = tearDownModule
