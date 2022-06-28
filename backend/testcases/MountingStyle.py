@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import MountingStyle, Footprint
+from elements import MountingStyle, Footprint, Unit, Category, Part
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -115,7 +115,25 @@ class TestMountingStyle(unittest.TestCase):
 
     def test_deletion_with_associated_part(self):
         # if Part referes to a MountingStyle the mounting_style_id should be None'ed when MountingStyle is deleted
-        self.assertTrue(False)
+        docDB.clear()
+        ms = MountingStyle({'name': 'somems'})
+        ms.save()
+        self.assertNotNone(ms['_id'])
+        u = Unit({'name': 'someunit'})
+        u.save()
+        self.assertNotNone(u['_id'])
+        c = Category({'name': 'somecat'})
+        c.save()
+        self.assertNotNone(c['_id'])
+        p = Part('name': 'somepart', unit_id=u['_id'], category_id=c['_id'], mounting_style_id=ms['_id'])
+        p.save()
+        self.assertEqual(len(MountingStyle.all()), 1)
+        self.assertNotNone(p['mounting_style_id'])
+        # Part's mounting_style_id should get None'ed
+        ms.delete()
+        self.assertEqual(len(MountingStyle.all()), 0)
+        p.reload()
+        self.assertNone(p['mounting_style_id'])
 
 
 setup_module = setUpModule

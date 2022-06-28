@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import Footprint, MountingStyle
+from elements import Footprint, MountingStyle, Unit, Category, Part
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -48,7 +48,25 @@ class TestFootprint(unittest.TestCase):
 
     def test_deletion_with_associated_part(self):
         # if Part referes to a Footprint the footprint_id should be None'ed when Footprint is deleted
-        self.assertTrue(False)
+        docDB.clear()
+        fp = Footprint({'name': 'somefp'})
+        fp.save()
+        self.assertNotNone(fp['_id'])
+        u = Unit({'name': 'someunit'})
+        u.save()
+        self.assertNotNone(u['_id'])
+        c = Category({'name': 'somecat'})
+        c.save()
+        self.assertNotNone(c['_id'])
+        p = Part('name': 'somepart', unit_id=u['_id'], category_id=c['_id'], footprint_id=fp['_id'])
+        p.save()
+        self.assertEqual(len(Footprint.all()), 1)
+        self.assertNotNone(p['footprint_id'])
+        # Part's footprint_id should get None'ed
+        fp.delete()
+        self.assertEqual(len(Footprint.all()), 0)
+        p.reload()
+        self.assertNone(p['footprint_id'])
 
 
 setup_module = setUpModule

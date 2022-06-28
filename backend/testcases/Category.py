@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import Category
+from elements import Category, Unit, Part
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -68,7 +68,26 @@ class TestCategory(unittest.TestCase):
 
     def test_deletion_with_associated_part(self):
         # if Part referes to a Category the Category shouldn't be deletable
-        self.assertTrue(False)
+        docDB.clear()
+        c = Category({'name': 'somecat'})
+        c.save()
+        self.assertNotNone(c['_id'])
+        u = Unit({'name': 'someunit'})
+        u.save()
+        self.assertNotNone(u['_id'])
+        p = Part('name': 'somepart', unit_id=u['_id'], category_id=c['_id'])
+        p.save()
+        self.assertNotNone(p['_id'])
+        self.assertEqual(len(Category.all()), 1)
+        # it shouldn be possible to delete Category because of associated Part
+        result = c.delete()
+        self.assertIn('error', result)
+        self.assertEqual(len(Category.all()), 1)
+        # deleting Part should make it possible to delete Category
+        p.delete()
+        result = c.delete()
+        self.asserNotIn('error', result)
+        self.assertEqual(len(Category.all()), 0)
 
 
 setup_module = setUpModule

@@ -84,8 +84,10 @@ class ElementEndpointBase():
                 if el['_id'] is None:
                     cherrypy.response.status = 404
                     return {'error': f'id {element_id} not found'}
-                el.delete()
-                return
+                result = el.delete()
+                if not'deleted' in result:
+                    cherrypy.response.status = 400
+                return result
         else:
             if element_id is None:
                 cherrypy.response.headers['Allow'] = 'OPTIONS, GET, POST'
