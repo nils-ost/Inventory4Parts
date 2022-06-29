@@ -12,3 +12,6 @@ class Footprint(ElementBase):
         if self['mounting_style_id'] is not None and not docDB.exists('MountingStyle', self['mounting_style_id']):
             errors['mounting_style_id'] = f"There is no MountingStyle with id '{self['mounting_style_id']}'"
         return errors
+
+    def delete_pre(self):
+        docDB.update_many('Part', {'footprint_id': self['_id']}, {'$set': {'footprint_id': None}})

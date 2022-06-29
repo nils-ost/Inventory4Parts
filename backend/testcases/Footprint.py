@@ -51,22 +51,22 @@ class TestFootprint(unittest.TestCase):
         docDB.clear()
         fp = Footprint({'name': 'somefp'})
         fp.save()
-        self.assertNotNone(fp['_id'])
+        self.assertIsNotNone(fp['_id'])
         u = Unit({'name': 'someunit'})
         u.save()
-        self.assertNotNone(u['_id'])
+        self.assertIsNotNone(u['_id'])
         c = Category({'name': 'somecat'})
         c.save()
-        self.assertNotNone(c['_id'])
-        p = Part('name': 'somepart', unit_id=u['_id'], category_id=c['_id'], footprint_id=fp['_id'])
+        self.assertIsNotNone(c['_id'])
+        p = Part({'name': 'somepart', 'unit_id': u['_id'], 'category_id': c['_id'], 'footprint_id': fp['_id']})
         p.save()
         self.assertEqual(len(Footprint.all()), 1)
-        self.assertNotNone(p['footprint_id'])
+        self.assertIsNotNone(p['footprint_id'])
         # Part's footprint_id should get None'ed
         fp.delete()
         self.assertEqual(len(Footprint.all()), 0)
         p.reload()
-        self.assertNone(p['footprint_id'])
+        self.assertIsNone(p['footprint_id'])
 
 
 setup_module = setUpModule

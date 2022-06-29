@@ -9,3 +9,4 @@ class MountingStyle(ElementBase):
 
     def delete_pre(self):
         docDB.update_many('Footprint', {'mounting_style_id': self['_id']}, {'$set': {'mounting_style_id': None}})
+        docDB.update_many('Part', {'mounting_style_id': self['_id']}, {'$set': {'mounting_style_id': None}})

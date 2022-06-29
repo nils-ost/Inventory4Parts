@@ -71,13 +71,13 @@ class TestCategory(unittest.TestCase):
         docDB.clear()
         c = Category({'name': 'somecat'})
         c.save()
-        self.assertNotNone(c['_id'])
+        self.assertIsNotNone(c['_id'])
         u = Unit({'name': 'someunit'})
         u.save()
-        self.assertNotNone(u['_id'])
-        p = Part('name': 'somepart', unit_id=u['_id'], category_id=c['_id'])
+        self.assertIsNotNone(u['_id'])
+        p = Part({'name': 'somepart', 'unit_id': u['_id'], 'category_id': c['_id']})
         p.save()
-        self.assertNotNone(p['_id'])
+        self.assertIsNotNone(p['_id'])
         self.assertEqual(len(Category.all()), 1)
         # it shouldn be possible to delete Category because of associated Part
         result = c.delete()
@@ -86,7 +86,7 @@ class TestCategory(unittest.TestCase):
         # deleting Part should make it possible to delete Category
         p.delete()
         result = c.delete()
-        self.asserNotIn('error', result)
+        self.assertNotIn('error', result)
         self.assertEqual(len(Category.all()), 0)
 
 

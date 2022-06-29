@@ -118,22 +118,22 @@ class TestMountingStyle(unittest.TestCase):
         docDB.clear()
         ms = MountingStyle({'name': 'somems'})
         ms.save()
-        self.assertNotNone(ms['_id'])
+        self.assertIsNotNone(ms['_id'])
         u = Unit({'name': 'someunit'})
         u.save()
-        self.assertNotNone(u['_id'])
+        self.assertIsNotNone(u['_id'])
         c = Category({'name': 'somecat'})
         c.save()
-        self.assertNotNone(c['_id'])
-        p = Part('name': 'somepart', unit_id=u['_id'], category_id=c['_id'], mounting_style_id=ms['_id'])
+        self.assertIsNotNone(c['_id'])
+        p = Part({'name': 'somepart', 'unit_id': u['_id'], 'category_id': c['_id'], 'mounting_style_id': ms['_id']})
         p.save()
         self.assertEqual(len(MountingStyle.all()), 1)
-        self.assertNotNone(p['mounting_style_id'])
+        self.assertIsNotNone(p['mounting_style_id'])
         # Part's mounting_style_id should get None'ed
         ms.delete()
         self.assertEqual(len(MountingStyle.all()), 0)
         p.reload()
-        self.assertNone(p['mounting_style_id'])
+        self.assertIsNone(p['mounting_style_id'])
 
 
 setup_module = setUpModule

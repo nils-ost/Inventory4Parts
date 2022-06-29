@@ -96,7 +96,9 @@ class ElementBase(object):
     def delete(self):
         saved_id = self['_id']
         if self['_id'] is not None and docDB.exists(self.__class__.__name__, self['_id']):
-            self.delete_pre()
+            pre_delete_result = self.delete_pre()
+            if pre_delete_result is not None and 'error' in pre_delete_result:
+                return pre_delete_result
             docDB.delete(self.__class__.__name__, self['_id'])
             self.delete_post()
         self.__init_attr()

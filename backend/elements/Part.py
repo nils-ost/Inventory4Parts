@@ -1,5 +1,6 @@
-from elements._elementBase import ElementBase
+from elements._elementBase import ElementBase, docDB
 from decimal import Decimal
+from elements import Footprint
 
 
 class Part(ElementBase):
@@ -13,6 +14,23 @@ class Part(ElementBase):
         external_number=ElementBase.addAttr(default='')
     )
 
+    def validate(self):
+        errors = dict()
+        if not docDB.exists('Unit', self['unit_id']):
+            errors['unit_id'] = f"There is no Unit with id '{self['unit_id']}'"
+        if not docDB.exists('Category', self['category_id']):
+            errors['category_id'] = f"There is no Category with id '{self['category_id']}'"
+        if self['mounting_style_id'] is not None and not docDB.exists('MountingStyle', self['mounting_style_id']):
+            errors['mounting_style_id'] = f"There is no MountingStyle with id '{self['mounting_style_id']}'"
+        if self['footprint_id'] is not None and not docDB.exists('Footprint', self['footprint_id']):
+            errors['footprint_id'] = f"There is no Footprint with id '{self['footprint_id']}'"
+        return errors
+
+    def save_pre(self):
+        if self['footprint_id'] is not None:
+            fp = Footprint.get(self['footprint_id'])
+            self['mounting_style_id'] = fp['mounting_style_id']
+
     def stock_level(self):
         return 0
 
@@ -21,3 +39,10 @@ class Part(ElementBase):
 
     def open_orders(self):
         return False
+
+    def json(self):
+        result = super().json()
+        result['stock_level'] = self.stock_level()
+        result['avg_price'] = float(self.avg_price())
+        result['open_orders'] = self.open_orders()
+        return result

@@ -1,6 +1,7 @@
 import unittest
 from helpers.docdb import docDB
 from elements import Part, Unit, Category, Footprint, MountingStyle
+from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
 class TestPart(unittest.TestCase):
@@ -93,12 +94,11 @@ class TestPart(unittest.TestCase):
         result = p2.save()
         self.assertNotIn('errors', result)
         self.assertEqual(len(Part.all()), 2)
-        self.assertTrue(False)
 
     def test_category_id_FK_and_notnone(self):
         self.assertEqual(len(Part.all()), 0)
         # if category_id is None it can't be saved
-        p1 = part('name': 'somepart', 'unit_id': self.u1, 'category_id': None)
+        p1 = Part({'name': 'somepart', 'unit_id': self.u1, 'category_id': None})
         result = p1.save()
         self.assertIn('category_id', result['errors'])
         self.assertEqual(len(Part.all()), 0)
@@ -125,3 +125,39 @@ class TestPart(unittest.TestCase):
         p.reload()
         self.assertNotEqual(p['mounting_style_id'], ms2['_id'])
         self.assertEqual(p['mounting_style_id'], self.ms1)
+
+
+setup_module = setUpModule
+teardown_module = tearDownModule
+
+
+class TestPartApi(ApiTestBase):
+    _element = Part
+    _path = 'part'
+    _patch_valid = {'external_number': '1234'}
+    _patch_invalid = {'footprint_id': 'invalidfootprint'}
+
+    def setUp(self):
+        docDB.clear()
+        c1 = Category({'name': 'cat1'})
+        c1.save()
+        u1 = Unit({'name': 'unit1'})
+        u1.save()
+        self._setup_el1 = {'name': 'part1', 'unit_id': u1['_id'], 'category_id': c1['_id']}
+        self._setup_el2 = {'name': 'part2', 'unit_id': u1['_id'], 'category_id': c1['_id']}
+        self._post_valid = {'name': 'part3', 'unit_id': u1['_id'], 'category_id': c1['_id']}
+        el = self._element(self._setup_el1)
+        self.id1 = el.save().get('created')
+        el = self._element(self._setup_el2)
+        self.id2 = el.save().get('created')
+
+    def test_calculated_attr_are_exposed(self):
+        p = Part().get(self.id1)
+        self.assertIsNotNone(p['_id'])
+        self.assertNotIn('stock_level', p._attr)
+        self.assertNotIn('avg_price', p._attr)
+        self.assertNotIn('open_orders', p._attr)
+        result = self.webapp_request(path=f'/{self._path}/{self.id1}/', method='GET')
+        self.assertIn('stock_level', result.json)
+        self.assertIn('avg_price', result.json)
+        self.assertIn('open_orders', result.json)

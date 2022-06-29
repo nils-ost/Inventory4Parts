@@ -98,13 +98,13 @@ class TestUnit(unittest.TestCase):
         docDB.clear()
         u = Unit({'name': 'someunit'})
         u.save()
-        self.assertNotNone(u['_id'])
+        self.assertIsNotNone(u['_id'])
         c = Category({'name': 'somecat'})
         c.save()
-        self.assertNotNone(c['_id'])
-        p = Part('name': 'somepart', unit_id=u['_id'], category_id=c['_id'])
+        self.assertIsNotNone(c['_id'])
+        p = Part({'name': 'somepart', 'unit_id': u['_id'], 'category_id': c['_id']})
         p.save()
-        self.assertNotNone(p['_id'])
+        self.assertIsNotNone(p['_id'])
         self.assertEqual(len(Unit.all()), 1)
         # it shouldn be possible to delete Unit because of associated Part
         result = u.delete()
@@ -113,7 +113,7 @@ class TestUnit(unittest.TestCase):
         # deleting Part should make it possible to delete Unit
         p.delete()
         result = u.delete()
-        self.asserNotIn('error', result)
+        self.assertNotIn('error', result)
         self.assertEqual(len(Unit.all()), 0)
 
 

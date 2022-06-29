@@ -14,6 +14,10 @@ class Unit(ElementBase):
         if self['default']:
             docDB.update_many(self.__class__.__name__, {'default': True}, {'$set': {'default': False}})
 
+    def delete_pre(self):
+        if docDB.search_one('Part', {'unit_id': self['_id']}) is not None:
+            return {'error': f"{repr(self)} can't be deleted as at least one Part is associated"}
+
     def delete_post(self):
         if docDB.search_one(self.__class__.__name__, {'default': True}) is None:
             someunit = docDB.search_one(self.__class__.__name__, {})
