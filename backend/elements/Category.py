@@ -4,7 +4,7 @@ from elements._elementBase import ElementBase, docDB
 class Category(ElementBase):
     _attrdef = dict(
         name=ElementBase.addAttr(notnone=True),
-        desc=ElementBase.addAttr(default=''),
+        desc=ElementBase.addAttr(default='', notnone=True),
         parent_category_id=ElementBase.addAttr()
     )
 

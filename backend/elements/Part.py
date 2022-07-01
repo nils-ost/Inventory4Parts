@@ -6,12 +6,12 @@ from elements import Footprint
 class Part(ElementBase):
     _attrdef = dict(
         name=ElementBase.addAttr(notnone=True),
-        desc=ElementBase.addAttr(default=''),
+        desc=ElementBase.addAttr(default='', notnone=True),
         unit_id=ElementBase.addAttr(notnone=True),
         footprint_id=ElementBase.addAttr(),
         mounting_style_id=ElementBase.addAttr(),
         category_id=ElementBase.addAttr(notnone=True),
-        external_number=ElementBase.addAttr(default='')
+        external_number=ElementBase.addAttr(default='', notnone=True)
     )
 
     def validate(self):

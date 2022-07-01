@@ -3,7 +3,7 @@ import cherrypy_cors
 from helpers.docdb import docDB
 from helpers.config import get_config
 from helpers.elementendpoint import ElementEndpointBase
-from elements import MountingStyle, Footprint, Category, Unit, Part
+from elements import MountingStyle, Footprint, Category, Unit, Part, Distributor, PartDistributor
 
 
 class Inventory4Parts():
@@ -13,6 +13,8 @@ class Inventory4Parts():
         self.category = CategoryEndpoint()
         self.unit = UnitEndpoint()
         self.part = PartEndpoint()
+        self.distributor = DistributorEndpoint()
+        self.partdistributor = PartDistributorEndpoint()
 
 
 class MountingStyleEndpoint(ElementEndpointBase):
@@ -33,6 +35,14 @@ class UnitEndpoint(ElementEndpointBase):
 
 class PartEndpoint(ElementEndpointBase):
     _element = Part
+
+
+class DistributorEndpoint(ElementEndpointBase):
+    _element = Distributor
+
+
+class PartDistributorEndpoint(ElementEndpointBase):
+    _element = PartDistributor
 
 
 if __name__ == '__main__':

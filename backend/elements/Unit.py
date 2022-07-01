@@ -4,7 +4,7 @@ from elements._elementBase import ElementBase, docDB
 class Unit(ElementBase):
     _attrdef = dict(
         name=ElementBase.addAttr(unique=True, notnone=True),
-        desc=ElementBase.addAttr(default=''),
+        desc=ElementBase.addAttr(default='', notnone=True),
         default=ElementBase.addAttr(type=bool, default=False, notnone=True)
     )
 

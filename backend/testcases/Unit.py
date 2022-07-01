@@ -91,7 +91,8 @@ class TestUnit(unittest.TestCase):
         el1.reload()
         self.assertTrue(el1['default'])
         # deleting last one does not produce an error
-        el1.delete()
+        result = el1.delete()
+        self.assertNotIn('error', result)
 
     def test_deletion_with_associated_part(self):
         # if Part referes to a Unit the Unit shouldn't be deletable
