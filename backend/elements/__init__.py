@@ -5,3 +5,5 @@ from .Unit import Unit
 from .Part import Part
 from .Distributor import Distributor
 from .PartDistributor import PartDistributor
+from .StorageGroup import StorageGroup
+from .StorageLocation import StorageLocation

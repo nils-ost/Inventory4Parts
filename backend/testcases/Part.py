@@ -48,7 +48,7 @@ class TestPart(unittest.TestCase):
         result = p1.save()
         self.assertIn('unit_id', result['errors'])
         self.assertEqual(len(Part.all()), 0)
-        # if unit_id is not a valid id if can't be saved
+        # if unit_id is not a valid id it can't be saved
         p1['unit_id'] = 'somerandomstring'
         result = p1.save()
         self.assertIn('unit_id', result['errors'])
@@ -66,7 +66,7 @@ class TestPart(unittest.TestCase):
         result = p1.save()
         self.assertNotIn('errors', result)
         self.assertEqual(len(Part.all()), 1)
-        # if footprint_id is not a valid id if can't be saved
+        # if footprint_id is not a valid id it can't be saved
         p2 = Part({'name': 'somepart', 'category_id': self.c1, 'unit_id': self.u1, 'footprint_id': 'somerandomstring'})
         result = p2.save()
         self.assertIn('footprint_id', result['errors'])
@@ -84,7 +84,7 @@ class TestPart(unittest.TestCase):
         result = p1.save()
         self.assertNotIn('errors', result)
         self.assertEqual(len(Part.all()), 1)
-        # if mounting_style_id is not a valid id if can't be saved
+        # if mounting_style_id is not a valid id it can't be saved
         p2 = Part({'name': 'somepart', 'category_id': self.c1, 'unit_id': self.u1, 'mounting_style_id': 'somerandomstring'})
         result = p2.save()
         self.assertIn('mounting_style_id', result['errors'])
@@ -102,7 +102,7 @@ class TestPart(unittest.TestCase):
         result = p1.save()
         self.assertIn('category_id', result['errors'])
         self.assertEqual(len(Part.all()), 0)
-        # if category_id is not a valid id if can't be saved
+        # if category_id is not a valid id it can't be saved
         p1['category_id'] = 'somerandomid'
         result = p1.save()
         self.assertIn('category_id', result['errors'])
