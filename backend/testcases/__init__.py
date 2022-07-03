@@ -7,3 +7,4 @@ from .Distributor import TestDistributor, TestDistributorApi
 from .PartDistributor import TestPartDistributor, TestPartDistributorApi
 from .StorageGroup import TestStorageGroup, TestStorageGroupApi
 from .StorageLocation import TestStorageLocation, TestStorageLocationApi
+from .Order import TestOrder, TestOrderApi

@@ -9,7 +9,7 @@ class PartDistributor(ElementBase):
         order_no=ElementBase.addAttr(default='', notnone=True),
         url=ElementBase.addAttr(default='', notnone=True),
         pkg_price=ElementBase.addAttr(type=float, default=0.0, notnone=True),
-        pkg_units=ElementBase.addAttr(type=int, default=0, notnone=True),
+        pkg_units=ElementBase.addAttr(type=int, default=1, notnone=True),
         preferred=ElementBase.addAttr(type=bool, default=False, notnone=True)
     )
 
@@ -19,6 +19,10 @@ class PartDistributor(ElementBase):
             errors['part_id'] = f"There is no Part with id '{self['part_id']}'"
         if not docDB.exists('Distributor', self['distributor_id']):
             errors['distributor_id'] = f"There is no Distributor with id '{self['distributor_id']}'"
+        if self['pkg_units'] < 1:
+            errors['pkg_units'] = 'Needs to be one or more'
+        if self['pkg_price'] < 0:
+            errors['pkg_price'] = "Can't be negative"
         return errors
 
     def save_pre(self):

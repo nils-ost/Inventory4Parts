@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import Part, Unit, Category, Footprint, MountingStyle
+from elements import Part, Unit, Category, Footprint, MountingStyle, Distributor, PartDistributor, Order
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -125,6 +125,59 @@ class TestPart(unittest.TestCase):
         p.reload()
         self.assertNotEqual(p['mounting_style_id'], ms2['_id'])
         self.assertEqual(p['mounting_style_id'], self.ms1)
+
+    def test_deletion(self):
+        p1 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p1.save()
+        p2 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p2.save()
+        self.assertEqual(len(Part.all()), 2)
+        p1.delete()
+        self.assertEqual(len(Part.all()), 1)
+        p2.delete()
+        self.assertEqual(len(Part.all()), 0)
+
+    def test_deletion_with_associated_partdistributor(self):
+        # if Part is deleted all referred PartDistributor should also be deleted
+        d = Distributor({'name': 'd1'})
+        d.save()
+        p1 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p1.save()
+        p2 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p2.save()
+        pd1 = PartDistributor({'distributor_id': d['_id'], 'part_id': p1['_id']})
+        pd1.save()
+        pd2 = PartDistributor({'distributor_id': d['_id'], 'part_id': p2['_id']})
+        pd2.save()
+        self.assertEqual(len(Part.all()), 2)
+        self.assertEqual(len(PartDistributor.all()), 2)
+        p1.delete()
+        self.assertEqual(len(Part.all()), 1)
+        self.assertEqual(len(PartDistributor.all()), 1)
+        p2.delete()
+        self.assertEqual(len(Part.all()), 0)
+        self.assertEqual(len(PartDistributor.all()), 0)
+
+    def test_deletion_with_associated_order(self):
+        # if Part is deleted all referred Order should also be deleted
+        d = Distributor({'name': 'd1'})
+        d.save()
+        p1 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p1.save()
+        p2 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p2.save()
+        o1 = Order({'distributor_id': d['_id'], 'part_id': p1['_id']})
+        o1.save()
+        o2 = Order({'distributor_id': d['_id'], 'part_id': p2['_id']})
+        o2.save()
+        self.assertEqual(len(Part.all()), 2)
+        self.assertEqual(len(Order.all()), 2)
+        p1.delete()
+        self.assertEqual(len(Part.all()), 1)
+        self.assertEqual(len(Order.all()), 1)
+        p2.delete()
+        self.assertEqual(len(Part.all()), 0)
+        self.assertEqual(len(Order.all()), 0)
 
 
 setup_module = setUpModule

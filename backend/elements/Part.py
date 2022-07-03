@@ -31,6 +31,15 @@ class Part(ElementBase):
             fp = Footprint.get(self['footprint_id'])
             self['mounting_style_id'] = fp['mounting_style_id']
 
+    def delete_pre(self):
+        from elements import PartDistributor, Order
+        for pd in docDB.search_many('PartDistributor', {'part_id': self['_id']}):
+            pd = PartDistributor(pd)
+            pd.delete()
+        for order in docDB.search_many('Order', {'part_id': self['_id']}):
+            order = Order(order)
+            order.delete()
+
     def stock_level(self):
         return 0
 

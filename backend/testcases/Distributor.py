@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import Distributor, PartDistributor, Part, Unit, Category
+from elements import Distributor, PartDistributor, Part, Unit, Category, Order
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -57,7 +57,19 @@ class TestDistributor(unittest.TestCase):
         self.assertEqual(len(Distributor.all()), 1)
 
     def test_deletion(self):
-        # if distributor is deleted all referred PartDistrubutor should also be deleted
+        docDB.clear()
+        d1 = Distributor({'name': 'd1'})
+        d1.save()
+        d2 = Distributor({'name': 'd2'})
+        d2.save()
+        self.assertEqual(len(Distributor.all()), 2)
+        d1.delete()
+        self.assertEqual(len(Distributor.all()), 1)
+        d2.delete()
+        self.assertEqual(len(Distributor.all()), 0)
+
+    def test_deletion_with_associated_partdistributor(self):
+        # if Distributor is deleted all referred PartDistributor should also be deleted
         docDB.clear()
         u = Unit({'name': 'u'})
         u.save()
@@ -79,6 +91,43 @@ class TestDistributor(unittest.TestCase):
         d1.delete()
         self.assertEqual(len(Distributor.all()), 1)
         self.assertEqual(len(PartDistributor.all()), 1)
+
+    def test_deletion_with_associated_order(self):
+        # if Distributor is deleted all referred Order should be None'ed on order_id
+        docDB.clear()
+        u = Unit({'name': 'u'})
+        u.save()
+        c = Category({'name': 'c'})
+        c.save()
+        p = Part({'name': 'p', 'unit_id': u['_id'], 'category_id': c['_id']})
+        result = p.save()
+        self.assertNotIn('errors', result)
+        d1 = Distributor({'name': 'd1'})
+        d1.save()
+        d2 = Distributor({'name': 'd2'})
+        d2.save()
+        o1 = Order({'part_id': p['_id'], 'distributor_id': d1['_id']})
+        o1.save()
+        o2 = Order({'part_id': p['_id'], 'distributor_id': d2['_id']})
+        o2.save()
+        self.assertEqual(len(Distributor.all()), 2)
+        self.assertEqual(len(Order.all()), 2)
+        self.assertIsNotNone(o1['distributor_id'])
+        self.assertIsNotNone(o2['distributor_id'])
+        d1.delete()
+        o1.reload()
+        o2.reload()
+        self.assertEqual(len(Distributor.all()), 1)
+        self.assertEqual(len(Order.all()), 2)
+        self.assertIsNone(o1['distributor_id'])
+        self.assertIsNotNone(o2['distributor_id'])
+        d2.delete()
+        o1.reload()
+        o2.reload()
+        self.assertEqual(len(Distributor.all()), 0)
+        self.assertEqual(len(Order.all()), 2)
+        self.assertIsNone(o1['distributor_id'])
+        self.assertIsNone(o2['distributor_id'])
 
 
 setup_module = setUpModule

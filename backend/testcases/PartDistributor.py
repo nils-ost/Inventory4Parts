@@ -91,7 +91,7 @@ class TestPartDistributor(unittest.TestCase):
         self.assertNotIn('errors', result)
         self.assertEqual(len(PartDistributor.all()), 1)
 
-    def test_pkg_price_float_and_notnone(self):
+    def test_pkg_price_float_and_notnone_and_positive(self):
         self.assertEqual(len(PartDistributor.all()), 0)
         # notnone
         element = PartDistributor({'part_id': self.pid, 'distributor_id': self.did, 'pkg_price': None})
@@ -103,26 +103,41 @@ class TestPartDistributor(unittest.TestCase):
         result = element.save()
         self.assertIn('type', result['errors']['pkg_price'])
         self.assertEqual(len(PartDistributor.all()), 0)
+        # negative not allowed
+        element = PartDistributor({'part_id': self.pid, 'distributor_id': self.did, 'pkg_price': -0.5})
+        result = element.save()
+        self.assertIn('negative', result['errors']['pkg_price'])
+        self.assertEqual(len(PartDistributor.all()), 0)
         # working
         element['pkg_price'] = 1.23
         result = element.save()
         self.assertNotIn('errors', result)
         self.assertEqual(len(PartDistributor.all()), 1)
 
-    def test_pkg_units_int_and_notnone(self):
+    def test_pkg_units_int_and_notnone_and_positive(self):
         self.assertEqual(len(PartDistributor.all()), 0)
         # notnone
         element = PartDistributor({'part_id': self.pid, 'distributor_id': self.did, 'pkg_units': None})
         result = element.save()
         self.assertIn('not to be None', result['errors']['pkg_units'])
         self.assertEqual(len(PartDistributor.all()), 0)
-        # float
+        # int
         element = PartDistributor({'part_id': self.pid, 'distributor_id': self.did, 'pkg_units': '2'})
         result = element.save()
         self.assertIn('type', result['errors']['pkg_units'])
         self.assertEqual(len(PartDistributor.all()), 0)
+        # zero not allowed
+        element = PartDistributor({'part_id': self.pid, 'distributor_id': self.did, 'pkg_units': 0})
+        result = element.save()
+        self.assertIn('one or more', result['errors']['pkg_units'])
+        self.assertEqual(len(PartDistributor.all()), 0)
+        # negative not allowed
+        element = PartDistributor({'part_id': self.pid, 'distributor_id': self.did, 'pkg_units': -1})
+        result = element.save()
+        self.assertIn('one or more', result['errors']['pkg_units'])
+        self.assertEqual(len(PartDistributor.all()), 0)
         # working
-        element['pkg_units'] = 2
+        element['pkg_units'] = 1
         result = element.save()
         self.assertNotIn('errors', result)
         self.assertEqual(len(PartDistributor.all()), 1)

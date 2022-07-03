@@ -4,6 +4,7 @@ from helpers.docdb import docDB
 from helpers.config import get_config
 from helpers.elementendpoint import ElementEndpointBase
 from elements import MountingStyle, Footprint, Category, Unit, Part, Distributor, PartDistributor, StorageGroup, StorageLocation
+from elements import Order
 
 
 class Inventory4Parts():
@@ -17,6 +18,7 @@ class Inventory4Parts():
         self.partdistributor = PartDistributorEndpoint()
         self.storagegroup = StorageGroupEndpoint()
         self.storagelocation = StorageLocationEndpoint()
+        self.order = OrderEndpoint()
 
 
 class MountingStyleEndpoint(ElementEndpointBase):
@@ -53,6 +55,10 @@ class StorageGroupEndpoint(ElementEndpointBase):
 
 class StorageLocationEndpoint(ElementEndpointBase):
     _element = StorageLocation
+
+
+class OrderEndpoint(ElementEndpointBase):
+    _element = Order
 
 
 if __name__ == '__main__':

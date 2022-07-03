@@ -13,3 +13,4 @@ class Distributor(ElementBase):
         for pd in docDB.search_many('PartDistributor', {'distributor_id': self['_id']}):
             pd = PartDistributor(pd)
             pd.delete()
+        docDB.update_many('Order', {'distributor_id': self['_id']}, {'$set': {'distributor_id': None}})
