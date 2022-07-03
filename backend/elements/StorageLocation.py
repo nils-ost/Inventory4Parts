@@ -20,4 +20,8 @@ class StorageLocation(ElementBase):
         return errors
 
     def delete_pre(self):
+        from elements import PartLocation
         docDB.update_many(self.__class__.__name__, {'parent_storage_location_id': self['_id']}, {'$set': {'parent_storage_location_id': None}})
+        for pl in docDB.search_many('PartLocation', {'storage_location_id': self['_id']}):
+            pl = PartLocation(pl)
+            pl.delete()

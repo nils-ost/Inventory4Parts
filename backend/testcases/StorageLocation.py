@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import StorageGroup, StorageLocation
+from elements import StorageGroup, StorageLocation, Unit, Category, Part, PartLocation
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -113,6 +113,31 @@ class TestStorageLocation(unittest.TestCase):
         child2.reload()
         self.assertIsNone(child1['parent_storage_location_id'])
         self.assertIsNone(child2['parent_storage_location_id'])
+
+    def test_deletion_with_associated_partlocation(self):
+        # if StorageLocation is deleted all referred PartLocation should also be deleted
+        u = Unit({'name': 'Name1'})
+        u.save()
+        c = Category({'name': 'Name1'})
+        c.save()
+        p = Part({'unit_id': u['_id'], 'category_id': c['_id'], 'name': 'somename1'})
+        p.save()
+        sl1 = StorageLocation({'name': 'Name1'})
+        sl1.save()
+        sl2 = StorageLocation({'name': 'Name2'})
+        sl2.save()
+        pl1 = PartLocation({'storage_location_id': sl1['_id'], 'part_id': p['_id']})
+        pl1.save()
+        pl2 = PartLocation({'storage_location_id': sl2['_id'], 'part_id': p['_id']})
+        pl2.save()
+        self.assertEqual(len(PartLocation.all()), 2)
+        self.assertEqual(len(PartLocation.all()), 2)
+        sl1.delete()
+        self.assertEqual(len(PartLocation.all()), 1)
+        self.assertEqual(len(PartLocation.all()), 1)
+        sl2.delete()
+        self.assertEqual(len(PartLocation.all()), 0)
+        self.assertEqual(len(PartLocation.all()), 0)
 
 
 setup_module = setUpModule

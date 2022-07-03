@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import Part, Unit, Category, Footprint, MountingStyle, Distributor, PartDistributor, Order
+from elements import Part, Unit, Category, Footprint, MountingStyle, Distributor, PartDistributor, Order, StorageLocation, PartLocation
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -178,6 +178,27 @@ class TestPart(unittest.TestCase):
         p2.delete()
         self.assertEqual(len(Part.all()), 0)
         self.assertEqual(len(Order.all()), 0)
+
+    def test_deletion_with_associated_partlocation(self):
+        # if Part is deleted all referred PartLocation should also be deleted
+        p1 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p1.save()
+        p2 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p2.save()
+        sl = StorageLocation({'name': 'Name1'})
+        sl.save()
+        pl1 = PartLocation({'storage_location_id': sl['_id'], 'part_id': p1['_id']})
+        pl1.save()
+        pl2 = PartLocation({'storage_location_id': sl['_id'], 'part_id': p2['_id']})
+        pl2.save()
+        self.assertEqual(len(Part.all()), 2)
+        self.assertEqual(len(PartLocation.all()), 2)
+        p1.delete()
+        self.assertEqual(len(Part.all()), 1)
+        self.assertEqual(len(PartLocation.all()), 1)
+        p2.delete()
+        self.assertEqual(len(Part.all()), 0)
+        self.assertEqual(len(PartLocation.all()), 0)
 
 
 setup_module = setUpModule

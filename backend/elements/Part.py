@@ -32,13 +32,16 @@ class Part(ElementBase):
             self['mounting_style_id'] = fp['mounting_style_id']
 
     def delete_pre(self):
-        from elements import PartDistributor, Order
+        from elements import PartDistributor, Order, PartLocation
         for pd in docDB.search_many('PartDistributor', {'part_id': self['_id']}):
             pd = PartDistributor(pd)
             pd.delete()
         for order in docDB.search_many('Order', {'part_id': self['_id']}):
             order = Order(order)
             order.delete()
+        for pl in docDB.search_many('PartLocation', {'part_id': self['_id']}):
+            pl = PartLocation(pl)
+            pl.delete()
 
     def stock_level(self):
         return 0
