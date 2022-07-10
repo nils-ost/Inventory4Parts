@@ -23,6 +23,12 @@ class PartLocation(ElementBase):
         if self['default']:
             docDB.update_many(self.__class__.__name__, {'default': True}, {'$set': {'default': False}})
 
+    def delete_pre(self):
+        from elements import StockChange
+        for sc in docDB.search_many('StockChange', {'part_location_id': self['_id']}):
+            sc = StockChange(sc)
+            sc.delete()
+
     def delete_post(self):
         if docDB.search_one(self.__class__.__name__, {'default': True}) is None:
             somepl = docDB.search_one(self.__class__.__name__, {})

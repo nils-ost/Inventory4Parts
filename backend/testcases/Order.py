@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import Order, Unit, Category, Part, Distributor
+from elements import Order, Unit, Category, Part, Distributor, StockChange, StorageLocation, PartLocation
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -137,6 +137,40 @@ class TestOrder(unittest.TestCase):
         self.assertEqual(len(Order.all()), 1)
         el2.delete()
         self.assertEqual(len(Order.all()), 0)
+
+    def test_deletion_with_associated_stock_change(self):
+        # if Order is deleted assiciated StockChange gets None'ed on order_id
+        sl = StorageLocation({'name': 'sl1'})
+        sl.save()
+        pl = PartLocation({'part_id': self.pid, 'storage_location_id': sl['_id']})
+        pl.save()
+        o1 = Order({'part_id': self.pid, 'distributor_id': self.did, 'amount': 10})
+        o1.save()
+        o2 = Order({'part_id': self.pid, 'distributor_id': self.did, 'amount': 10})
+        o2.save()
+        sc1 = StockChange({'part_location_id': pl['_id'], 'order_id': o1['_id']})
+        sc1.save()
+        sc2 = StockChange({'part_location_id': pl['_id'], 'order_id': o2['_id']})
+        sc2.save()
+        sc3 = StockChange({'part_location_id': pl['_id'], 'order_id': o2['_id']})
+        sc3.save()
+        self.assertIsNotNone(sc1['order_id'])
+        self.assertIsNotNone(sc2['order_id'])
+        self.assertIsNotNone(sc3['order_id'])
+        o1.delete()
+        sc1.reload()
+        sc2.reload()
+        sc3.reload()
+        self.assertIsNone(sc1['order_id'])
+        self.assertIsNotNone(sc2['order_id'])
+        self.assertIsNotNone(sc3['order_id'])
+        o2.delete()
+        sc1.reload()
+        sc2.reload()
+        sc3.reload()
+        self.assertIsNone(sc1['order_id'])
+        self.assertIsNone(sc2['order_id'])
+        self.assertIsNone(sc3['order_id'])
 
 
 setup_module = setUpModule

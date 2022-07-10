@@ -29,6 +29,9 @@ class Order(ElementBase):
         if self['created_at'] is None:
             self['created_at'] = int(time.time())
 
+    def delete_pre(self):
+        docDB.update_many('StockChange', {'order_id': self['_id']}, {'$set': {'order_id': None}})
+
     def completed(self):
         return False
 

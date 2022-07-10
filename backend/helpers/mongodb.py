@@ -89,3 +89,14 @@ class mongoDB(object):
 
     def delete(self, where, what_id):
         self.coll(where).delete_one({'_id': what_id})
+
+    def sum(self, where, what_field, what_filter=None):
+        pipeline = list()
+        if what_filter is not None:
+            pipeline.append({'$match': what_filter})
+        pipeline.append({'$group': {'_id': 'sum', what_field: {'$sum': f'${what_field}'}}})
+        result = self.coll(where).aggregate(pipeline)
+        if result.alive:
+            return result.next()[what_field]
+        else:
+            return 0

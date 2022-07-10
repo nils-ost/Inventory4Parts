@@ -9,3 +9,4 @@ from .StorageGroup import StorageGroup
 from .StorageLocation import StorageLocation
 from .Order import Order
 from .PartLocation import PartLocation
+from .StockChange import StockChange

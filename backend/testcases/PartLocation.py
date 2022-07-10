@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import PartLocation, Unit, Category, Part, StorageLocation
+from elements import PartLocation, Unit, Category, Part, StorageLocation, StockChange
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -141,6 +141,25 @@ class TestPartLocation(unittest.TestCase):
         self.assertEqual(len(PartLocation.all()), 1)
         el2.delete()
         self.assertEqual(len(PartLocation.all()), 0)
+
+    def test_deletion_with_associated_stock_change(self):
+        pass
+        # if a PartLocation is deleted all associated StockChange are deleted as well
+        pl1 = PartLocation({'part_id': self.pid, 'storage_location_id': self.slid})
+        pl1.save()
+        pl2 = PartLocation({'part_id': self.pid, 'storage_location_id': self.slid})
+        pl2.save()
+        sc1 = StockChange({'part_location_id': pl1['_id']})
+        sc1.save()
+        sc2 = StockChange({'part_location_id': pl2['_id']})
+        sc2.save()
+        sc3 = StockChange({'part_location_id': pl2['_id']})
+        sc3.save()
+        self.assertEqual(len(StockChange.all()), 3)
+        pl1.delete()
+        self.assertEqual(len(StockChange.all()), 2)
+        pl2.delete()
+        self.assertEqual(len(StockChange.all()), 0)
 
 
 setup_module = setUpModule
