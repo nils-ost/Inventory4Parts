@@ -1,5 +1,4 @@
 from elements._elementBase import ElementBase, docDB
-from decimal import Decimal
 from elements import Footprint
 
 
@@ -46,15 +45,20 @@ class Part(ElementBase):
     def stock_level(self):
         return 0
 
-    def avg_price(self):
-        return Decimal(0.00)
+    def stock_price(self):
+        return 0.0
 
     def open_orders(self):
+        from elements import Order
+        for order in docDB.search_many('Order', {'part_id': self['_id']}):
+            order = Order(order)
+            if not order.completed():
+                return True
         return False
 
     def json(self):
         result = super().json()
         result['stock_level'] = self.stock_level()
-        result['avg_price'] = float(self.avg_price())
+        result['stock_price'] = self.stock_price()
         result['open_orders'] = self.open_orders()
         return result

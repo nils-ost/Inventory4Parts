@@ -33,7 +33,8 @@ class Order(ElementBase):
         docDB.update_many('StockChange', {'order_id': self['_id']}, {'$set': {'order_id': None}})
 
     def completed(self):
-        return False
+        completed = docDB.sum('StockChange', 'amount', {'order_id': self['_id']})
+        return completed == self['amount']
 
     def json(self):
         result = super().json()

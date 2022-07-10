@@ -127,6 +127,33 @@ class TestOrder(unittest.TestCase):
         self.assertNotIn('errors', result)
         self.assertEqual(len(Order.all()), 1)
 
+    def test_completed(self):
+        o1 = Order({'part_id': self.pid, 'distributor_id': self.did, 'amount': 10})
+        o1.save()
+        o2 = Order({'part_id': self.pid, 'distributor_id': self.did, 'amount': 10})
+        o2.save()
+        sl = StorageLocation({'name': 'sl1'})
+        sl.save()
+        pl = PartLocation({'part_id': self.pid, 'storage_location_id': sl['_id']})
+        pl.save()
+        self.assertFalse(o1.completed())
+        self.assertFalse(o2.completed())
+        # completing Order in one go
+        sc = StockChange({'part_location_id': pl['_id'], 'order_id': o1['_id'], 'amount': 10})
+        sc.save()
+        self.assertTrue(o1.completed())
+        self.assertFalse(o2.completed())
+        # partially complete Order
+        sc = StockChange({'part_location_id': pl['_id'], 'order_id': o2['_id'], 'amount': 6})
+        sc.save()
+        self.assertTrue(o1.completed())
+        self.assertFalse(o2.completed())
+        # completing Order
+        sc = StockChange({'part_location_id': pl['_id'], 'order_id': o2['_id'], 'amount': 4})
+        sc.save()
+        self.assertTrue(o1.completed())
+        self.assertTrue(o2.completed())
+
     def test_deletion(self):
         el1 = Order({'part_id': self.pid, 'distributor_id': self.did})
         el1.save()
@@ -200,3 +227,10 @@ class TestOrderApi(ApiTestBase):
         self.id1 = el.save().get('created')
         el = self._element(self._setup_el2)
         self.id2 = el.save().get('created')
+
+    def test_calculated_attr_are_exposed(self):
+        o = Order().get(self.id1)
+        self.assertIsNotNone(o['_id'])
+        self.assertNotIn('completed', o._attr)
+        result = self.webapp_request(path=f'/{self._path}/{self.id1}/', method='GET')
+        self.assertIn('completed', result.json)

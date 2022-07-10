@@ -38,9 +38,13 @@ class PartLocation(ElementBase):
                 somepl.save()
 
     def stock_level(self):
-        return 0
+        return docDB.sum('StockChange', 'amount', {'part_location_id': self['_id']})
+
+    def stock_price(self):
+        return 0.0
 
     def json(self):
         result = super().json()
         result['stock_level'] = self.stock_level()
+        result['stock_price'] = self.stock_price()
         return result

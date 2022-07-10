@@ -1,6 +1,6 @@
 import unittest
 from helpers.docdb import docDB
-from elements import Part, Unit, Category, Footprint, MountingStyle, Distributor, PartDistributor, Order, StorageLocation, PartLocation
+from elements import Part, Unit, Category, Footprint, MountingStyle, Distributor, PartDistributor, Order, StorageLocation, PartLocation, StockChange
 from testcases._wrapper import ApiTestBase, setUpModule, tearDownModule
 
 
@@ -126,6 +126,36 @@ class TestPart(unittest.TestCase):
         self.assertNotEqual(p['mounting_style_id'], ms2['_id'])
         self.assertEqual(p['mounting_style_id'], self.ms1)
 
+    def test_open_orders(self):
+        p = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p.save()
+        sl = StorageLocation({'name': 'sl1'})
+        sl.save()
+        pl = PartLocation({'part_id': p['_id'], 'storage_location_id': sl['_id']})
+        pl.save()
+        # no Order = no open_orders
+        self.assertFalse(p.open_orders())
+        # add two Order that are not completed restults in open_orders
+        o1 = Order({'part_id': p['_id'], 'amount': 10})
+        o1.save()
+        o2 = Order({'part_id': p['_id'], 'amount': 10})
+        o2.save()
+        self.assertFalse(o1.completed())
+        self.assertFalse(o2.completed())
+        self.assertTrue(p.open_orders())
+        # complete one Order still one open
+        sc = StockChange({'part_location_id': pl['_id'], 'order_id': o1['_id'], 'amount': 10})
+        sc.save()
+        self.assertTrue(o1.completed())
+        self.assertFalse(o2.completed())
+        self.assertTrue(p.open_orders())
+        # complete second Order none remains uncompleted
+        sc = StockChange({'part_location_id': pl['_id'], 'order_id': o2['_id'], 'amount': 10})
+        sc.save()
+        self.assertTrue(o1.completed())
+        self.assertTrue(o2.completed())
+        self.assertFalse(p.open_orders())
+
     def test_deletion(self):
         p1 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
         p1.save()
@@ -229,9 +259,9 @@ class TestPartApi(ApiTestBase):
         p = Part().get(self.id1)
         self.assertIsNotNone(p['_id'])
         self.assertNotIn('stock_level', p._attr)
-        self.assertNotIn('avg_price', p._attr)
+        self.assertNotIn('stock_price', p._attr)
         self.assertNotIn('open_orders', p._attr)
         result = self.webapp_request(path=f'/{self._path}/{self.id1}/', method='GET')
         self.assertIn('stock_level', result.json)
-        self.assertIn('avg_price', result.json)
+        self.assertIn('stock_price', result.json)
         self.assertIn('open_orders', result.json)

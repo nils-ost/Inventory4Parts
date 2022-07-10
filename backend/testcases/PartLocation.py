@@ -131,6 +131,31 @@ class TestPartLocation(unittest.TestCase):
         result = el1.delete()
         self.assertNotIn('error', result)
 
+    def test_stock_level(self):
+        pl = PartLocation({'part_id': self.pid, 'storage_location_id': self.slid})
+        pl.save()
+        self.assertEqual(pl.stock_level(), 0)
+        # Adding stock
+        sc = StockChange({'part_location_id': pl['_id'], 'amount': 5})
+        sc.save()
+        self.assertEqual(pl.stock_level(), 5)
+        # Adding more stock
+        sc = StockChange({'part_location_id': pl['_id'], 'amount': 6})
+        sc.save()
+        self.assertEqual(pl.stock_level(), 11)
+        # Removing stock
+        sc = StockChange({'part_location_id': pl['_id'], 'amount': -9})
+        sc.save()
+        self.assertEqual(pl.stock_level(), 2)
+        # Adding some stock
+        sc = StockChange({'part_location_id': pl['_id'], 'amount': 2})
+        sc.save()
+        self.assertEqual(pl.stock_level(), 4)
+        # Removing the rest stock
+        sc = StockChange({'part_location_id': pl['_id'], 'amount': -4})
+        sc.save()
+        self.assertEqual(pl.stock_level(), 0)
+
     def test_deletion(self):
         el1 = PartLocation({'part_id': self.pid, 'storage_location_id': self.slid})
         el1.save()
@@ -189,3 +214,12 @@ class TestPartLocationApi(ApiTestBase):
         self.id1 = el.save().get('created')
         el = self._element(self._setup_el2)
         self.id2 = el.save().get('created')
+
+    def test_calculated_attr_are_exposed(self):
+        pl = PartLocation().get(self.id1)
+        self.assertIsNotNone(pl['_id'])
+        self.assertNotIn('stock_level', pl._attr)
+        self.assertNotIn('stock_price', pl._attr)
+        result = self.webapp_request(path=f'/{self._path}/{self.id1}/', method='GET')
+        self.assertIn('stock_level', result.json)
+        self.assertIn('stock_price', result.json)
