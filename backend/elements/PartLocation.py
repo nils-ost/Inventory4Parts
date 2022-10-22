@@ -41,7 +41,18 @@ class PartLocation(ElementBase):
         return docDB.sum('StockChange', 'amount', {'part_location_id': self['_id']})
 
     def stock_price(self):
-        return 0.0
+        from decimal import Decimal
+        result = Decimal('0.0')
+        removed = docDB.sum('StockChange', 'amount', {'part_location_id': self['_id'], 'amount': {'$lt': 0}}) * -1
+        for sc in docDB.search_many('StockChange', {'part_location_id': self['_id'], 'amount': {'$gt': 0}}):
+            if removed == 0:
+                result += Decimal(str(sc['price']))
+            elif removed >= sc['amount']:
+                removed -= sc['amount']
+            else:
+                result += Decimal(str(sc['price'])) / sc['amount'] * (sc['amount'] - removed)
+                removed = 0
+        return float(result)
 
     def json(self):
         result = super().json()

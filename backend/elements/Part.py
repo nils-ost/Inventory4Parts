@@ -51,7 +51,13 @@ class Part(ElementBase):
         return result
 
     def stock_price(self):
-        return 0.0
+        from decimal import Decimal
+        from elements import PartLocation
+        result = Decimal('0.0')
+        for pl in docDB.search_many('PartLocation', {'part_id': self['_id']}):
+            pl = PartLocation(pl)
+            result += Decimal(str(pl.stock_price()))
+        return float(result)
 
     def open_orders(self):
         from elements import Order
