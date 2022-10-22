@@ -43,7 +43,12 @@ class Part(ElementBase):
             pl.delete()
 
     def stock_level(self):
-        return 0
+        from elements import PartLocation
+        result = 0
+        for pl in docDB.search_many('PartLocation', {'part_id': self['_id']}):
+            pl = PartLocation(pl)
+            result += pl.stock_level()
+        return result
 
     def stock_price(self):
         return 0.0
