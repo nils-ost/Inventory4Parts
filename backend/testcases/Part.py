@@ -140,18 +140,21 @@ class TestPart(unittest.TestCase):
         o1.save()
         o2 = Order({'part_id': p['_id'], 'amount': 10})
         o2.save()
+        p.drop_cache()
         self.assertFalse(o1.completed())
         self.assertFalse(o2.completed())
         self.assertTrue(p.open_orders())
         # complete one Order still one open
         sc = StockChange({'part_location_id': pl['_id'], 'order_id': o1['_id'], 'amount': 10})
         sc.save()
+        p.drop_cache()
         self.assertTrue(o1.completed())
         self.assertFalse(o2.completed())
         self.assertTrue(p.open_orders())
         # complete second Order none remains uncompleted
         sc = StockChange({'part_location_id': pl['_id'], 'order_id': o2['_id'], 'amount': 10})
         sc.save()
+        p.drop_cache()
         self.assertTrue(o1.completed())
         self.assertTrue(o2.completed())
         self.assertFalse(p.open_orders())
@@ -170,80 +173,69 @@ class TestPart(unittest.TestCase):
         pl3 = PartLocation({'part_id': p['_id'], 'storage_location_id': sl1['_id']})
         pl3.save()
         # all stock_levels are 0
-        self.assertEqual(pl1.stock_level(), 0)
-        self.assertEqual(pl2.stock_level(), 0)
-        self.assertEqual(pl3.stock_level(), 0)
-        self.assertEqual(p.stock_level(), 0)
+        for obj, val in zip([pl1, pl2, pl3, p], [0, 0, 0, 0]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # adding stock to first pl
         sc = StockChange({'part_location_id': pl1['_id'], 'amount': 5})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 5)
-        self.assertEqual(pl2.stock_level(), 0)
-        self.assertEqual(pl3.stock_level(), 0)
-        self.assertEqual(p.stock_level(), 5)
+        for obj, val in zip([pl1, pl2, pl3, p], [5, 0, 0, 5]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # adding stock to second pl
         sc = StockChange({'part_location_id': pl2['_id'], 'amount': 6})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 5)
-        self.assertEqual(pl2.stock_level(), 6)
-        self.assertEqual(pl3.stock_level(), 0)
-        self.assertEqual(p.stock_level(), 11)
+        for obj, val in zip([pl1, pl2, pl3, p], [5, 6, 0, 11]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # adding stock to third pl
         sc = StockChange({'part_location_id': pl3['_id'], 'amount': 7})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 5)
-        self.assertEqual(pl2.stock_level(), 6)
-        self.assertEqual(pl3.stock_level(), 7)
-        self.assertEqual(p.stock_level(), 18)
+        for obj, val in zip([pl1, pl2, pl3, p], [5, 6, 7, 18]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # removing stock form first pl
         sc = StockChange({'part_location_id': pl1['_id'], 'amount': -4})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 1)
-        self.assertEqual(pl2.stock_level(), 6)
-        self.assertEqual(pl3.stock_level(), 7)
-        self.assertEqual(p.stock_level(), 14)
+        for obj, val in zip([pl1, pl2, pl3, p], [1, 6, 7, 14]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # removing stock form second pl
         sc = StockChange({'part_location_id': pl2['_id'], 'amount': -3})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 1)
-        self.assertEqual(pl2.stock_level(), 3)
-        self.assertEqual(pl3.stock_level(), 7)
-        self.assertEqual(p.stock_level(), 11)
+        for obj, val in zip([pl1, pl2, pl3, p], [1, 3, 7, 11]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # removing stock form third pl
         sc = StockChange({'part_location_id': pl3['_id'], 'amount': -2})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 1)
-        self.assertEqual(pl2.stock_level(), 3)
-        self.assertEqual(pl3.stock_level(), 5)
-        self.assertEqual(p.stock_level(), 9)
+        for obj, val in zip([pl1, pl2, pl3, p], [1, 3, 5, 9]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # adding some stock back to second pl
         sc = StockChange({'part_location_id': pl2['_id'], 'amount': 4})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 1)
-        self.assertEqual(pl2.stock_level(), 7)
-        self.assertEqual(pl3.stock_level(), 5)
-        self.assertEqual(p.stock_level(), 13)
+        for obj, val in zip([pl1, pl2, pl3, p], [1, 7, 5, 13]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # removing all stock form first pl
         sc = StockChange({'part_location_id': pl1['_id'], 'amount': -1})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 0)
-        self.assertEqual(pl2.stock_level(), 7)
-        self.assertEqual(pl3.stock_level(), 5)
-        self.assertEqual(p.stock_level(), 12)
+        for obj, val in zip([pl1, pl2, pl3, p], [0, 7, 5, 12]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # removing all stock form second pl
         sc = StockChange({'part_location_id': pl2['_id'], 'amount': -7})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 0)
-        self.assertEqual(pl2.stock_level(), 0)
-        self.assertEqual(pl3.stock_level(), 5)
-        self.assertEqual(p.stock_level(), 5)
+        for obj, val in zip([pl1, pl2, pl3, p], [0, 0, 5, 5]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
         # removing all stock form third pl
         sc = StockChange({'part_location_id': pl3['_id'], 'amount': -5})
         sc.save()
-        self.assertEqual(pl1.stock_level(), 0)
-        self.assertEqual(pl2.stock_level(), 0)
-        self.assertEqual(pl3.stock_level(), 0)
-        self.assertEqual(p.stock_level(), 0)
+        for obj, val in zip([pl1, pl2, pl3, p], [0, 0, 0, 0]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_level(), val)
 
     def test_stock_price(self):
         p = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
@@ -259,80 +251,69 @@ class TestPart(unittest.TestCase):
         pl3 = PartLocation({'part_id': p['_id'], 'storage_location_id': sl1['_id']})
         pl3.save()
         # all stock_prices are 0
-        self.assertEqual(pl1.stock_price(), 0.0)
-        self.assertEqual(pl2.stock_price(), 0.0)
-        self.assertEqual(pl3.stock_price(), 0.0)
-        self.assertEqual(p.stock_price(), 0.0)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.0, 0.0, 0.0, 0.0]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # adding stock to first pl
         sc = StockChange({'part_location_id': pl1['_id'], 'amount': 5, 'price': 0.5})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.5)
-        self.assertEqual(pl2.stock_price(), 0.0)
-        self.assertEqual(pl3.stock_price(), 0.0)
-        self.assertEqual(p.stock_price(), 0.5)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.5, 0.0, 0.0, 0.5]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # adding stock to second pl
         sc = StockChange({'part_location_id': pl2['_id'], 'amount': 6, 'price': 1.2})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.5)
-        self.assertEqual(pl2.stock_price(), 1.2)
-        self.assertEqual(pl3.stock_price(), 0.0)
-        self.assertEqual(p.stock_price(), 1.7)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.5, 1.2, 0.0, 1.7]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # adding stock to third pl
         sc = StockChange({'part_location_id': pl3['_id'], 'amount': 7, 'price': 2.1})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.5)
-        self.assertEqual(pl2.stock_price(), 1.2)
-        self.assertEqual(pl3.stock_price(), 2.1)
-        self.assertEqual(p.stock_price(), 3.8)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.5, 1.2, 2.1, 3.8]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # removing stock form first pl
         sc = StockChange({'part_location_id': pl1['_id'], 'amount': -4})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.1)
-        self.assertEqual(pl2.stock_price(), 1.2)
-        self.assertEqual(pl3.stock_price(), 2.1)
-        self.assertEqual(p.stock_price(), 3.4)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.1, 1.2, 2.1, 3.4]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # removing stock form second pl
         sc = StockChange({'part_location_id': pl2['_id'], 'amount': -3})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.1)
-        self.assertEqual(pl2.stock_price(), 0.6)
-        self.assertEqual(pl3.stock_price(), 2.1)
-        self.assertEqual(p.stock_price(), 2.8)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.1, 0.6, 2.1, 2.8]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # removing stock form third pl
         sc = StockChange({'part_location_id': pl3['_id'], 'amount': -2})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.1)
-        self.assertEqual(pl2.stock_price(), 0.6)
-        self.assertEqual(pl3.stock_price(), 1.5)
-        self.assertEqual(p.stock_price(), 2.2)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.1, 0.6, 1.5, 2.2]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # adding some stock back to second pl
         sc = StockChange({'part_location_id': pl2['_id'], 'amount': 4, 'price': 1.6})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.1)
-        self.assertEqual(pl2.stock_price(), 2.2)
-        self.assertEqual(pl3.stock_price(), 1.5)
-        self.assertEqual(p.stock_price(), 3.8)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.1, 2.2, 1.5, 3.8]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # removing all stock form first pl
         sc = StockChange({'part_location_id': pl1['_id'], 'amount': -1})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.0)
-        self.assertEqual(pl2.stock_price(), 2.2)
-        self.assertEqual(pl3.stock_price(), 1.5)
-        self.assertEqual(p.stock_price(), 3.7)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.0, 2.2, 1.5, 3.7]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # removing all stock form second pl
         sc = StockChange({'part_location_id': pl2['_id'], 'amount': -7})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.0)
-        self.assertEqual(pl2.stock_price(), 0.0)
-        self.assertEqual(pl3.stock_price(), 1.5)
-        self.assertEqual(p.stock_price(), 1.5)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.0, 0.0, 1.5, 1.5]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
         # removing all stock form third pl
         sc = StockChange({'part_location_id': pl3['_id'], 'amount': -5})
         sc.save()
-        self.assertEqual(pl1.stock_price(), 0.0)
-        self.assertEqual(pl2.stock_price(), 0.0)
-        self.assertEqual(pl3.stock_price(), 0.0)
-        self.assertEqual(p.stock_price(), 0.0)
+        for obj, val in zip([pl1, pl2, pl3, p], [0.0, 0.0, 0.0, 0.0]):
+            obj.drop_cache()
+            self.assertEqual(obj.stock_price(), val)
 
     def test_deletion(self):
         p1 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})

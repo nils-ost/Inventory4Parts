@@ -5,6 +5,7 @@ class ElementBase(object):
     _attrdef = dict()
 
     def __init__(self, attr=None):
+        self._cache = dict()
         self._attr = dict()
         if '_id' not in self.__class__._attrdef.keys():
             self.__class__._attrdef = {**{'_id': self.__class__.addAttr(type=str, default=None, unique=True)}, **self.__class__._attrdef}  # add _id on front
@@ -114,6 +115,9 @@ class ElementBase(object):
         fromdb = docDB.get(self.__class__.__name__, self['_id'])
         if fromdb is not None:
             self._attr = fromdb
+
+    def drop_cache(self):
+        self._cache = dict()
 
     def json(self):
         result = {**{'id': self['_id']}, **self._attr}

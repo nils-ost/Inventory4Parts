@@ -138,22 +138,27 @@ class TestPartLocation(unittest.TestCase):
         # Adding stock
         sc = StockChange({'part_location_id': pl['_id'], 'amount': 5})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 5)
         # Adding more stock
         sc = StockChange({'part_location_id': pl['_id'], 'amount': 6})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 11)
         # Removing stock
         sc = StockChange({'part_location_id': pl['_id'], 'amount': -9})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 2)
         # Adding some stock
         sc = StockChange({'part_location_id': pl['_id'], 'amount': 2})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 4)
         # Removing the rest stock
         sc = StockChange({'part_location_id': pl['_id'], 'amount': -4})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 0)
 
     def test_stock_price(self):
@@ -164,51 +169,61 @@ class TestPartLocation(unittest.TestCase):
         # Adding 10 for 1.0
         sc = StockChange({'part_location_id': pl['_id'], 'amount': 10, 'price': 1.0})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 10)
         self.assertEqual(pl.stock_price(), 1.0)
         # Removing 5
         sc = StockChange({'part_location_id': pl['_id'], 'amount': -5})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 5)
         self.assertEqual(pl.stock_price(), 0.5)
         # Adding 10 for 2.0
         sc = StockChange({'part_location_id': pl['_id'], 'amount': 10, 'price': 2.0})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 15)
         self.assertEqual(pl.stock_price(), 2.5)
         # Removing 4
         sc = StockChange({'part_location_id': pl['_id'], 'amount': -4})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 11)
         self.assertEqual(pl.stock_price(), 2.1)
         # Adding 10 for 3.0
         sc = StockChange({'part_location_id': pl['_id'], 'amount': 10, 'price': 3.0})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 21)
         self.assertEqual(pl.stock_price(), 5.1)
         # Removing 6
         sc = StockChange({'part_location_id': pl['_id'], 'amount': -6})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 15)
         self.assertEqual(pl.stock_price(), 4)
         # Removing 5
         sc = StockChange({'part_location_id': pl['_id'], 'amount': -5})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 10)
         self.assertEqual(pl.stock_price(), 3)
         # Removing 2
         sc = StockChange({'part_location_id': pl['_id'], 'amount': -2})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 8)
         self.assertEqual(pl.stock_price(), 2.4)
         # Removing 8
         sc = StockChange({'part_location_id': pl['_id'], 'amount': -8})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 0)
         self.assertEqual(pl.stock_price(), 0.0)
         # Adding 5 for 1.5
         sc = StockChange({'part_location_id': pl['_id'], 'amount': 5, 'price': 1.5})
         sc.save()
+        pl.drop_cache()
         self.assertEqual(pl.stock_level(), 5)
         self.assertEqual(pl.stock_price(), 1.5)
 

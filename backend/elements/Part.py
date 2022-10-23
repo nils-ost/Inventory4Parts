@@ -43,29 +43,40 @@ class Part(ElementBase):
             pl.delete()
 
     def stock_level(self):
+        if 'stock_level' in self._cache:
+            return self._cache['stock_level']
         from elements import PartLocation
         result = 0
         for pl in docDB.search_many('PartLocation', {'part_id': self['_id']}):
             pl = PartLocation(pl)
             result += pl.stock_level()
+        self._cache['stock_level'] = result
         return result
 
     def stock_price(self):
+        if 'stock_price' in self._cache:
+            return self._cache['stock_price']
         from decimal import Decimal
         from elements import PartLocation
         result = Decimal('0.0')
         for pl in docDB.search_many('PartLocation', {'part_id': self['_id']}):
             pl = PartLocation(pl)
             result += Decimal(str(pl.stock_price()))
+        self._cache['stock_price'] = float(result)
         return float(result)
 
     def open_orders(self):
+        if 'open_orders' in self._cache:
+            return self._cache['open_orders']
         from elements import Order
+        result = False
         for order in docDB.search_many('Order', {'part_id': self['_id']}):
             order = Order(order)
             if not order.completed():
-                return True
-        return False
+                result = True
+                break
+        self._cache['open_orders'] = result
+        return result
 
     def json(self):
         result = super().json()

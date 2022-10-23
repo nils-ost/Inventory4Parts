@@ -38,9 +38,15 @@ class PartLocation(ElementBase):
                 somepl.save()
 
     def stock_level(self):
-        return docDB.sum('StockChange', 'amount', {'part_location_id': self['_id']})
+        if 'stock_level' in self._cache:
+            return self._cache['stock_level']
+        result = docDB.sum('StockChange', 'amount', {'part_location_id': self['_id']})
+        self._cache['stock_level'] = result
+        return result
 
     def stock_price(self):
+        if 'stock_price' in self._cache:
+            return self._cache['stock_price']
         from decimal import Decimal
         result = Decimal('0.0')
         removed = docDB.sum('StockChange', 'amount', {'part_location_id': self['_id'], 'amount': {'$lt': 0}}) * -1
@@ -52,6 +58,7 @@ class PartLocation(ElementBase):
             else:
                 result += Decimal(str(sc['price'])) / sc['amount'] * (sc['amount'] - removed)
                 removed = 0
+        self._cache['stock_price'] = float(result)
         return float(result)
 
     def json(self):
