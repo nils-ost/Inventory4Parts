@@ -113,6 +113,41 @@ class TestPart(unittest.TestCase):
         self.assertNotIn('errors', result)
         self.assertEqual(len(Part.all()), 1)
 
+    def test_stock_min_integer_and_notnone_and_positive(self):
+        # notnone
+        p1 = Part({'name': 'somepart', 'category_id': self.c1, 'unit_id': self.u1, 'stock_min': None})
+        result = p1.save()
+        self.assertIn('not to be None', result['errors']['stock_min'])
+        self.assertEqual(len(Part.all()), 0)
+        # integer
+        p1 = Part({'name': 'somepart', 'category_id': self.c1, 'unit_id': self.u1, 'stock_min': 1.23})
+        result = p1.save()
+        self.assertIn('type', result['errors']['stock_min'])
+        self.assertEqual(len(Part.all()), 0)
+        # negative not allowed
+        p1 = Part({'name': 'somepart', 'category_id': self.c1, 'unit_id': self.u1, 'stock_min': -1})
+        result = p1.save()
+        self.assertIn('negative', result['errors']['stock_min'])
+        self.assertEqual(len(Part.all()), 0)
+        # defaults to zero
+        p1 = Part({'name': 'somepart', 'category_id': self.c1, 'unit_id': self.u1})
+        result = p1.save()
+        self.assertNotIn('errors', result)
+        self.assertEqual(len(Part.all()), 1)
+        self.assertEqual(p1['stock_min'], 0)
+        # positive allowed
+        p2 = Part({'name': 'somepart', 'category_id': self.c1, 'unit_id': self.u1, 'stock_min': 1})
+        result = p2.save()
+        self.assertNotIn('errors', result)
+        self.assertEqual(len(Part.all()), 2)
+        self.assertEqual(p2['stock_min'], 1)
+        # zero allowed
+        p3 = Part({'name': 'somepart', 'category_id': self.c1, 'unit_id': self.u1, 'stock_min': 0})
+        result = p3.save()
+        self.assertNotIn('errors', result)
+        self.assertEqual(len(Part.all()), 3)
+        self.assertEqual(p3['stock_min'], 0)
+
     def test_footprint_overwrites_mounting_style(self):
         fp1 = Footprint.get(self.fp1)
         fp1['mounting_style_id'] = self.ms1
@@ -315,6 +350,45 @@ class TestPart(unittest.TestCase):
             obj.drop_cache()
             self.assertEqual(obj.stock_price(), val)
 
+    def test_stock_low(self):
+        p = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
+        p.save()
+        sl1 = StorageLocation({'name': 'sl1'})
+        sl1.save()
+        pl1 = PartLocation({'part_id': p['_id'], 'storage_location_id': sl1['_id']})
+        pl1.save()
+        # default stock_min does not trigger stock_low
+        self.assertFalse(p.stock_low())
+        # setting stock_min to 5 triggers with none existing stock
+        p['stock_min'] = 5
+        p.save()
+        self.assertTrue(p.stock_low())
+        # adding 6 to stock should now clear stock_low
+        sc = StockChange({'part_location_id': pl1['_id'], 'amount': 6})
+        sc.save()
+        p.drop_cache()
+        self.assertEqual(p.stock_level(), 6)
+        self.assertFalse(p.stock_low())
+        # removing 1 stock is now exactly at stick_min but should not trigger stock_low
+        sc = StockChange({'part_location_id': pl1['_id'], 'amount': -1})
+        sc.save()
+        p.drop_cache()
+        self.assertEqual(p.stock_level(), 5)
+        self.assertEqual(p.stock_level(), p['stock_min'])
+        self.assertFalse(p.stock_low())
+        # removing 1 stock more is now under stick_min and should  trigger stock_low
+        sc = StockChange({'part_location_id': pl1['_id'], 'amount': -1})
+        sc.save()
+        p.drop_cache()
+        self.assertEqual(p.stock_level(), 4)
+        self.assertTrue(p.stock_low())
+        # removing all remaining stock still triggers stock_low
+        sc = StockChange({'part_location_id': pl1['_id'], 'amount': -4})
+        sc.save()
+        p.drop_cache()
+        self.assertEqual(p.stock_level(), 0)
+        self.assertTrue(p.stock_low())
+
     def test_deletion(self):
         p1 = Part({'unit_id': self.u1, 'category_id': self.c1, 'name': 'somename1'})
         p1.save()
@@ -419,8 +493,10 @@ class TestPartApi(ApiTestBase):
         self.assertIsNotNone(p['_id'])
         self.assertNotIn('stock_level', p._attr)
         self.assertNotIn('stock_price', p._attr)
+        self.assertNotIn('stock_low', p._attr)
         self.assertNotIn('open_orders', p._attr)
         result = self.webapp_request(path=f'/{self._path}/{self.id1}/', method='GET')
         self.assertIn('stock_level', result.json)
         self.assertIn('stock_price', result.json)
+        self.assertIn('stock_low', result.json)
         self.assertIn('open_orders', result.json)

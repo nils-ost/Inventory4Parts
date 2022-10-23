@@ -10,6 +10,7 @@ class Part(ElementBase):
         footprint_id=ElementBase.addAttr(),
         mounting_style_id=ElementBase.addAttr(),
         category_id=ElementBase.addAttr(notnone=True),
+        stock_min=ElementBase.addAttr(notnone=True, type=int, default=0),
         external_number=ElementBase.addAttr(default='', notnone=True)
     )
 
@@ -23,6 +24,8 @@ class Part(ElementBase):
             errors['mounting_style_id'] = f"There is no MountingStyle with id '{self['mounting_style_id']}'"
         if self['footprint_id'] is not None and not docDB.exists('Footprint', self['footprint_id']):
             errors['footprint_id'] = f"There is no Footprint with id '{self['footprint_id']}'"
+        if self['stock_min'] < 0:
+            errors['stock_min'] = "Can't be negative"
         return errors
 
     def save_pre(self):
@@ -65,6 +68,9 @@ class Part(ElementBase):
         self._cache['stock_price'] = float(result)
         return float(result)
 
+    def stock_low(self):
+        return self.stock_level() < self['stock_min']
+
     def open_orders(self):
         if 'open_orders' in self._cache:
             return self._cache['open_orders']
@@ -82,5 +88,6 @@ class Part(ElementBase):
         result = super().json()
         result['stock_level'] = self.stock_level()
         result['stock_price'] = self.stock_price()
+        result['stock_low'] = self.stock_low()
         result['open_orders'] = self.open_orders()
         return result
